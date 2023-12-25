@@ -73,6 +73,9 @@ def main_menu():
     bg = load_image('backgrounds', 'main menu bg.png')
     screen.blit(bg, (0, 0))
     st_btn_pressed_time = 0
+
+    pygame.mixer.music.load('sounds/The Transformers (Theme) (128kbps).mp3')
+    pygame.mixer.music.play(-1)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -83,12 +86,15 @@ def main_menu():
                     st_btn_pressed_time = pygame.time.get_ticks()
         all_sprites.draw(screen)
         if start_btn.is_pressed and 300 < pygame.time.get_ticks() - st_btn_pressed_time < 400:
+            pygame.mixer.music.stop()
             return
         clock.tick(fps)
         pygame.display.flip()
 
 
 def main_game():
+    pygame.mixer.music.load('sounds/Transformers Cybertron - Theme Song (Extended).mp3')
+    pygame.mixer.music.play(-1)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
