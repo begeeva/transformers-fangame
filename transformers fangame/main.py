@@ -13,6 +13,29 @@ fps = 30
 clock = pygame.time.Clock()
 
 
+class AnimatedSprite(pygame.sprite.Sprite):
+    def __init__(self, group, sheet, columns, rows, x, y):
+        super().__init__(group)
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
+
+
 class Star(pygame.sprite.Sprite):
     image = pygame.image.load('images/sprites/a star.png')
 
@@ -54,6 +77,24 @@ class StartBtn(pygame.sprite.Sprite):
             self.is_pressed = True
 
 
+class City(pygame.sprite.Sprite):
+    image = pygame.image.load('images/sprites/bg city.png')
+
+    def __init__(self, group):
+        super().__init__(group)
+        self.image = City.image
+        self.rect = self.image.get_rect()
+        self.rect.bottom = 294
+
+    def update(self):
+        self.rect.x -= 1
+        self.destroy()
+
+    def destroy(self):
+        if self.rect.right < 0:
+            self.kill()
+
+
 def terminate():
     pygame.quit()
     sys.exit()
@@ -61,6 +102,7 @@ def terminate():
 
 def main_menu():
     all_sprites = pygame.sprite.Group()
+
     star_sprites = pygame.sprite.Group()
     all_sprites.add(star_sprites)
 
@@ -121,21 +163,19 @@ def main_menu():
 
 
 def main_game():
+    all_sprites = pygame.sprite.Group()
+
     bg = pygame.image.load('images/backgrounds/space.png')
 
     ground = pygame.image.load('images/sprites/ground.png')
     ground_rect = ground.get_rect()
     ground_rect.bottom = HEIGHT
 
-    bg_city = pygame.image.load('images/sprites/bg city.png')
-    bg_city_rect = bg_city.get_rect()
-    bg_city_rect.bottom = 294
+    bg_city = City(all_sprites)
 
-    cliff = pygame.Surface((66, 96))
-    cliff.fill('red')
-    cliff_rect = cliff.get_rect()
-    cliff_rect.left = 50
-    cliff_rect.bottom = 294
+    cliff_sprite = pygame.sprite.GroupSingle()
+    cliffjumper = AnimatedSprite(cliff_sprite, pygame.image.load('images/sprites/cliffjumper run cycle.png'),
+                                 3, 3, 50, 180)
 
     pygame.mixer.music.load('sounds/Transformers Cybertron - Theme Song (Extended).mp3')
     pygame.mixer.music.play(-1)
@@ -146,11 +186,19 @@ def main_game():
 
         screen.blit(bg, (0, 0))
         screen.blit(ground, ground_rect)
-        screen.blit(bg_city, bg_city_rect)
-        screen.blit(cliff, cliff_rect)
 
-        clock.tick(fps)
+        if bg_city.rect.right == WIDTH:
+            city = City(all_sprites)
+            city.rect.left = WIDTH
+
+        all_sprites.draw(screen)
+        all_sprites.update()
+
+        cliff_sprite.draw(screen)
+        cliff_sprite.update()
+
         pygame.display.flip()
+        clock.tick(18)
 
 
 main_menu()
