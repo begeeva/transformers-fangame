@@ -75,6 +75,9 @@ class City(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
+        self.cliff_alt_mode = pygame.image.load('images/cliff sprites/cliff alt mode.png').convert_alpha()
+        self.alt_mode_on = False
+        self.cliff_jump = pygame.image.load('images/cliff sprites/cliff jump.png').convert_alpha()
         cr0 = pygame.image.load('images/cliff sprites/cliff run00.png').convert_alpha()
         cr1 = pygame.image.load('images/cliff sprites/cliff run01.png').convert_alpha()
         cr2 = pygame.image.load('images/cliff sprites/cliff run02.png').convert_alpha()
@@ -84,7 +87,6 @@ class Player(pygame.sprite.Sprite):
         cr6 = pygame.image.load('images/cliff sprites/cliff run06.png').convert_alpha()
         cr7 = pygame.image.load('images/cliff sprites/cliff run07.png').convert_alpha()
         cr8 = pygame.image.load('images/cliff sprites/cliff run08.png').convert_alpha()
-        self.cliff_jump = pygame.image.load('images/cliff sprites/cliff jump.png').convert_alpha()
         self.cliff_run = [cr0, cr1, cr2, cr3, cr4, cr5, cr6, cr7, cr8]
         self.index = 0
         self.image = self.cliff_run[self.index]
@@ -103,7 +105,10 @@ class Player(pygame.sprite.Sprite):
         if self.index >= len(self.cliff_run):
             self.index = 0
         if self.rect.bottom == 294:
-            self.image = self.cliff_run[int(self.index)]
+            if self.alt_mode_on:
+                self.image = self.cliff_alt_mode
+            else:
+                self.image = self.cliff_run[int(self.index)]
         elif self.rect.bottom < 294:
             self.image = self.cliff_jump
 
@@ -117,7 +122,7 @@ class Player(pygame.sprite.Sprite):
     def player_input(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE] and self.rect.bottom >= 294:
-            self.gravity -= 18
+                self.gravity -= 18
 
 
 def terminate():
@@ -208,6 +213,8 @@ def main_game():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_LSHIFT:
+                player.alt_mode_on = not player.alt_mode_on
 
         screen.blit(bg, (0, 0))
         screen.blit(ground, ground_rect)
