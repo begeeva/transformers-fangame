@@ -13,31 +13,8 @@ fps = 30
 clock = pygame.time.Clock()
 
 
-class AnimatedSprite(pygame.sprite.Sprite):
-    def __init__(self, group, sheet, columns, rows, x, y):
-        super().__init__(group)
-        self.frames = []
-        self.cut_sheet(sheet, columns, rows)
-        self.cur_frame = 0
-        self.image = self.frames[self.cur_frame]
-        self.rect = self.rect.move(x, y)
-
-    def cut_sheet(self, sheet, columns, rows):
-        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
-                                sheet.get_height() // rows)
-        for j in range(rows):
-            for i in range(columns):
-                frame_location = (self.rect.w * i, self.rect.h * j)
-                self.frames.append(sheet.subsurface(pygame.Rect(
-                    frame_location, self.rect.size)))
-
-    def update(self):
-        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
-        self.image = self.frames[self.cur_frame]
-
-
 class Star(pygame.sprite.Sprite):
-    image = pygame.image.load('images/sprites/a star.png')
+    image = pygame.image.load('images/other sprites/a star.png')
 
     def __init__(self, group):
         super().__init__(*group)
@@ -58,8 +35,8 @@ class Star(pygame.sprite.Sprite):
 
 
 class StartBtn(pygame.sprite.Sprite):
-    not_pressed = pygame.image.load('images/sprites/start btn.png').convert_alpha()
-    pressed = pygame.image.load('images/sprites/start btn pressed.png').convert_alpha()
+    not_pressed = pygame.image.load('images/other sprites/start btn.png').convert_alpha()
+    pressed = pygame.image.load('images/other sprites/start btn pressed.png').convert_alpha()
 
     def __init__(self, group):
         super().__init__(group)
@@ -78,7 +55,7 @@ class StartBtn(pygame.sprite.Sprite):
 
 
 class City(pygame.sprite.Sprite):
-    image = pygame.image.load('images/sprites/bg city.png')
+    image = pygame.image.load('images/other sprites/bg city.png')
 
     def __init__(self, group):
         super().__init__(group)
@@ -93,6 +70,54 @@ class City(pygame.sprite.Sprite):
     def destroy(self):
         if self.rect.right < 0:
             self.kill()
+
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        cr0 = pygame.image.load('images/cliff sprites/cliff run00.png').convert_alpha()
+        cr1 = pygame.image.load('images/cliff sprites/cliff run01.png').convert_alpha()
+        cr2 = pygame.image.load('images/cliff sprites/cliff run02.png').convert_alpha()
+        cr3 = pygame.image.load('images/cliff sprites/cliff run03.png').convert_alpha()
+        cr4 = pygame.image.load('images/cliff sprites/cliff run04.png').convert_alpha()
+        cr5 = pygame.image.load('images/cliff sprites/cliff run05.png').convert_alpha()
+        cr6 = pygame.image.load('images/cliff sprites/cliff run06.png').convert_alpha()
+        cr7 = pygame.image.load('images/cliff sprites/cliff run07.png').convert_alpha()
+        cr8 = pygame.image.load('images/cliff sprites/cliff run08.png').convert_alpha()
+        self.cliff_jump = pygame.image.load('images/cliff sprites/cliff jump.png').convert_alpha()
+        self.cliff_run = [cr0, cr1, cr2, cr3, cr4, cr5, cr6, cr7, cr8]
+        self.index = 0
+        self.image = self.cliff_run[self.index]
+        self.rect = self.image.get_rect()
+        self.rect.left = 70
+        self.rect.bottom = 294
+        self.gravity = 0
+
+    def update(self):
+        self.player_input()
+        self.apply_gravity()
+        self.animation()
+
+    def animation(self):
+        self.index += 0.9
+        if self.index >= len(self.cliff_run):
+            self.index = 0
+        if self.rect.bottom == 294:
+            self.image = self.cliff_run[int(self.index)]
+        elif self.rect.bottom < 294:
+            self.image = self.cliff_jump
+
+    def apply_gravity(self):
+        self.gravity += 1
+        self.rect.bottom += self.gravity
+        if self.rect.bottom >= 294:
+            self.rect.bottom = 294
+            self.gravity = 0
+
+    def player_input(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE] and self.rect.bottom >= 294:
+            self.gravity -= 18
 
 
 def terminate():
@@ -110,7 +135,7 @@ def main_menu():
     start_btn = StartBtn(st_btn_sprite)
     st_btn_pressed_time = 0
 
-    game_title = pygame.image.load('images/sprites/title.png').convert_alpha()
+    game_title = pygame.image.load('images/other sprites/title.png').convert_alpha()
     game_title_rect = game_title.get_rect()
     game_title_rect.x = 40
     game_title_rect.y = 100
@@ -126,7 +151,7 @@ def main_menu():
         star = Star(star_sprites)
         all_sprites.add(star)
 
-    cybertron = pygame.image.load('images/sprites/Cybertron.png')
+    cybertron = pygame.image.load('images/other sprites/Cybertron.png')
     cybertron_rect = cybertron.get_rect()
     cybertron_rect.bottom = HEIGHT
     cybertron_rect.right = WIDTH
@@ -167,15 +192,15 @@ def main_game():
 
     bg = pygame.image.load('images/backgrounds/space.png')
 
-    ground = pygame.image.load('images/sprites/ground.png')
+    ground = pygame.image.load('images/other sprites/ground.png')
     ground_rect = ground.get_rect()
     ground_rect.bottom = HEIGHT
 
     bg_city = City(all_sprites)
 
-    cliff_sprite = pygame.sprite.GroupSingle()
-    cliffjumper = AnimatedSprite(cliff_sprite, pygame.image.load('images/sprites/cliffjumper run cycle.png'),
-                                 3, 3, 50, 180)
+    cliffjumper = pygame.sprite.GroupSingle()
+    player = Player()
+    cliffjumper.add(player)
 
     pygame.mixer.music.load('sounds/Transformers Cybertron - Theme Song (Extended).mp3')
     pygame.mixer.music.play(-1)
@@ -194,8 +219,8 @@ def main_game():
         all_sprites.draw(screen)
         all_sprites.update()
 
-        cliff_sprite.draw(screen)
-        cliff_sprite.update()
+        cliffjumper.draw(screen)
+        cliffjumper.update()
 
         pygame.display.flip()
         clock.tick(18)
