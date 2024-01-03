@@ -9,7 +9,7 @@ pygame.init()
 screen = pygame.display.set_mode(SIZE)
 running = True
 
-fps = 30
+FPS = 30
 clock = pygame.time.Clock()
 
 
@@ -57,14 +57,15 @@ class StartBtn(pygame.sprite.Sprite):
 class City(pygame.sprite.Sprite):
     image = pygame.image.load('images/other sprites/bg city.png')
 
-    def __init__(self, group):
+    def __init__(self, group, speed):
         super().__init__(group)
         self.image = City.image
         self.rect = self.image.get_rect()
         self.rect.bottom = 294
+        self.speed = speed
 
     def update(self):
-        self.rect.x -= 1
+        self.rect.x -= self.speed
         self.destroy()
 
     def destroy(self):
@@ -101,14 +102,16 @@ class Player(pygame.sprite.Sprite):
         self.animation()
 
     def animation(self):
-        self.index += 0.9
+        self.index += 0.6
         if self.index >= len(self.cliff_run):
             self.index = 0
         if self.rect.bottom == 294:
             if self.alt_mode_on:
                 self.image = self.cliff_alt_mode
+                self.rect.top = 240
             else:
                 self.image = self.cliff_run[int(self.index)]
+                self.rect.bottom = 294
         elif self.rect.bottom < 294:
             self.image = self.cliff_jump
 
@@ -122,12 +125,56 @@ class Player(pygame.sprite.Sprite):
     def player_input(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE] and self.rect.bottom >= 294:
-                self.gravity -= 18
+            self.gravity -= 18
+
+
+class TunnelCeiling(pygame.sprite.Sprite):
+    image = pygame.image.load('images/other sprites/tunnel ceiling.png')
+
+    def __init__(self, x, speed):
+        super().__init__()
+        self.image = TunnelCeiling.image
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.speed = speed
+
+    def update(self):
+        self.rect.x -= self.speed
+        self.destroy()
+
+    def destroy(self):
+        if self.rect.right < -400:
+            self.kill()
+
+
+class TunnelWall(pygame.sprite.Sprite):
+    image = pygame.image.load('images/other sprites/tunnel wall.png')
+
+    def __init__(self, speed):
+        super().__init__()
+        self.image = TunnelWall.image
+        self.rect = self.image.get_rect()
+        self.rect.x = randrange(WIDTH + 10, WIDTH + 200)
+        self.speed = speed
+
+    def update(self):
+        self.rect.x -= self.speed
+        self.destroy()
+
+    def destroy(self):
+        if self.rect.x < -400:
+            self.kill()
 
 
 def terminate():
     pygame.quit()
     sys.exit()
+
+
+def collision(sprite, group):
+    if pygame.sprite.spritecollide(sprite, group, False):
+        group.empty()
+        return True
 
 
 def main_menu():
@@ -188,7 +235,7 @@ def main_menu():
         if start_btn.is_pressed and 300 < pygame.time.get_ticks() - st_btn_pressed_time < 400:
             pygame.mixer.music.stop()
             return
-        clock.tick(fps)
+        clock.tick(FPS)
         pygame.display.flip()
 
 
@@ -201,11 +248,24 @@ def main_game():
     ground_rect = ground.get_rect()
     ground_rect.bottom = HEIGHT
 
-    bg_city = City(all_sprites)
+    city_speed = 1
+    bg_sprites = pygame.sprite.Group()
+    bg_city = City(all_sprites, city_speed)
+    bg_sprites.add(bg_city)
 
-    cliffjumper = pygame.sprite.GroupSingle()
-    player = Player()
-    cliffjumper.add(player)
+    cliffjumper = pygame.sprite.GroupSingle(Player())
+
+    test_obstacle = pygame.Surface((400, 210))
+    test_obstacle.fill('red')
+
+    test_obstacle2 = pygame.Surface((114, 60))
+    test_obstacle2.fill('red')
+
+    tunnel_ceilings = pygame.sprite.Group()
+    tunnel_walls = pygame.sprite.Group()
+    tunnel_speed = 3
+    tunnel_appear = pygame.USEREVENT + 1
+    pygame.time.set_timer(tunnel_appear, 15000)
 
     pygame.mixer.music.load('sounds/Transformers Cybertron - Theme Song (Extended).mp3')
     pygame.mixer.music.play(-1)
@@ -214,23 +274,56 @@ def main_game():
             if event.type == pygame.QUIT:
                 terminate()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_LSHIFT:
-                player.alt_mode_on = not player.alt_mode_on
+                cliffjumper.sprite.alt_mode_on = not cliffjumper.sprite.alt_mode_on
+            if event.type == tunnel_appear:
+                tunnel_wall = TunnelWall(tunnel_speed)
+                tunnel_walls.add(tunnel_wall)
+                tunnel_ceiling = TunnelCeiling(tunnel_wall.rect.x, tunnel_speed)
+                tunnel_ceilings.add(tunnel_ceiling)
 
         screen.blit(bg, (0, 0))
         screen.blit(ground, ground_rect)
 
-        if bg_city.rect.right == WIDTH:
-            city = City(all_sprites)
-            city.rect.left = WIDTH
+        if cliffjumper.sprite.alt_mode_on:
+            city_speed = 2
+            tunnel_speed = 8
+        elif not cliffjumper.sprite.alt_mode_on:
+            city_speed = 1
+            tunnel_speed = 2
+
+        for sprite in bg_sprites.sprites():
+            sprite.speed = city_speed
+            if sprite.rect.right == WIDTH:
+                city = City(all_sprites, city_speed)
+                city.rect.left = WIDTH
+                bg_sprites.add(city)
+            elif sprite.rect.right == WIDTH + 1:
+                city = City(all_sprites, city_speed)
+                city.rect.left = WIDTH + 1
+                bg_sprites.add(city)
+
+        for sprite in tunnel_walls.sprites():
+            sprite.speed = tunnel_speed
+
+        for sprite in tunnel_ceilings.sprites():
+            sprite.speed = tunnel_speed
 
         all_sprites.draw(screen)
         all_sprites.update()
 
+        tunnel_walls.draw(screen)
+        tunnel_walls.update()
+        tunnel_ceilings.draw(screen)
+        tunnel_ceilings.update()
+
         cliffjumper.draw(screen)
         cliffjumper.update()
 
+        if collision(cliffjumper.sprite, tunnel_ceilings):
+            terminate()
+
         pygame.display.flip()
-        clock.tick(18)
+        clock.tick(24)
 
 
 main_menu()
