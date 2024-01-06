@@ -1,6 +1,6 @@
 import pygame
 import sys
-from random import randrange
+from random import randrange, choice
 
 
 SIZE = WIDTH, HEIGHT = 768, 384
@@ -166,6 +166,26 @@ class TunnelWall(pygame.sprite.Sprite):
             self.kill()
 
 
+class Enemy(pygame.sprite.Sprite):
+    image = pygame.image.load('images/other sprites/vehicon steve.png').convert_alpha()
+
+    def __init__(self, speed):
+        super().__init__()
+        self.image = Enemy.image
+        self.rect = self.image.get_rect()
+        self.rect.bottom = 294
+        self.rect.left = randrange(WIDTH + 100, WIDTH + 600)
+        self.speed = speed
+
+    def update(self):
+        self.rect.left -= self.speed
+        self.destroy()
+
+    def destroy(self):
+        if self.rect.right < -100:
+            self.kill()
+
+
 def terminate():
     pygame.quit()
     sys.exit()
@@ -255,17 +275,17 @@ def main_game():
 
     cliffjumper = pygame.sprite.GroupSingle(Player())
 
-    test_obstacle = pygame.Surface((400, 210))
-    test_obstacle.fill('red')
+    vehicons = pygame.sprite.Group()
+    vehicon_speed = 10
 
-    test_obstacle2 = pygame.Surface((114, 60))
+    test_obstacle2 = pygame.Surface((114, 36))
     test_obstacle2.fill('red')
 
     tunnel_ceilings = pygame.sprite.Group()
     tunnel_walls = pygame.sprite.Group()
-    tunnel_speed = 3
+    tunnel_speed = 5
     tunnel_appear = pygame.USEREVENT + 1
-    pygame.time.set_timer(tunnel_appear, 15000)
+    pygame.time.set_timer(tunnel_appear, 4000)
 
     pygame.mixer.music.load('sounds/Transformers Cybertron - Theme Song (Extended).mp3')
     pygame.mixer.music.play(-1)
@@ -273,23 +293,32 @@ def main_game():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_LSHIFT:
+            if (event.type == pygame.KEYDOWN and event.key == pygame.K_LSHIFT) or \
+                (event.type == pygame.MOUSEBUTTONDOWN and event.button == 3):
                 cliffjumper.sprite.alt_mode_on = not cliffjumper.sprite.alt_mode_on
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                cliffjumper.sprite.gravity = -18
             if event.type == tunnel_appear:
-                tunnel_wall = TunnelWall(tunnel_speed)
-                tunnel_walls.add(tunnel_wall)
-                tunnel_ceiling = TunnelCeiling(tunnel_wall.rect.x, tunnel_speed)
-                tunnel_ceilings.add(tunnel_ceiling)
+                if choice(['vehicon', 'vehicon', 'vehicon', 'tunnel']) == 'tunnel':
+                    tunnel_wall = TunnelWall(tunnel_speed)
+                    tunnel_walls.add(tunnel_wall)
+                    tunnel_ceiling = TunnelCeiling(tunnel_wall.rect.x, tunnel_speed)
+                    tunnel_ceilings.add(tunnel_ceiling)
+                else:
+                    steve = Enemy(vehicon_speed)
+                    vehicons.add(steve)
 
         screen.blit(bg, (0, 0))
         screen.blit(ground, ground_rect)
 
         if cliffjumper.sprite.alt_mode_on:
             city_speed = 2
-            tunnel_speed = 8
+            tunnel_speed = 13
+            vehicon_speed = 18
         elif not cliffjumper.sprite.alt_mode_on:
             city_speed = 1
-            tunnel_speed = 2
+            tunnel_speed = 5
+            vehicon_speed = 10
 
         for sprite in bg_sprites.sprites():
             sprite.speed = city_speed
@@ -308,6 +337,9 @@ def main_game():
         for sprite in tunnel_ceilings.sprites():
             sprite.speed = tunnel_speed
 
+        for sprite in vehicons.sprites():
+            sprite.speed = vehicon_speed
+
         all_sprites.draw(screen)
         all_sprites.update()
 
@@ -316,10 +348,15 @@ def main_game():
         tunnel_ceilings.draw(screen)
         tunnel_ceilings.update()
 
+        vehicons.draw(screen)
+        vehicons.update()
+
         cliffjumper.draw(screen)
         cliffjumper.update()
 
         if collision(cliffjumper.sprite, tunnel_ceilings):
+            terminate()
+        if collision(cliffjumper.sprite, vehicons):
             terminate()
 
         pygame.display.flip()
