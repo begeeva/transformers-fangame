@@ -2,15 +2,18 @@ import pygame
 import sys
 from random import randrange, choice
 
-
 SIZE = WIDTH, HEIGHT = 768, 384
+
+player_score = 0
+best_score = 0
 
 pygame.init()
 screen = pygame.display.set_mode(SIZE)
-running = True
 
 FPS = 30
 clock = pygame.time.Clock()
+
+start_time = 0
 
 
 class Star(pygame.sprite.Sprite):
@@ -143,7 +146,7 @@ class TunnelCeiling(pygame.sprite.Sprite):
         self.destroy()
 
     def destroy(self):
-        if self.rect.right < -400:
+        if self.rect.right < -100:
             self.kill()
 
 
@@ -154,15 +157,15 @@ class TunnelWall(pygame.sprite.Sprite):
         super().__init__()
         self.image = TunnelWall.image
         self.rect = self.image.get_rect()
-        self.rect.x = randrange(WIDTH + 10, WIDTH + 200)
+        self.rect.x = randrange(WIDTH + 10, WIDTH + 600)
         self.speed = speed
 
     def update(self):
-        self.rect.x -= self.speed
+        self.rect.left -= self.speed
         self.destroy()
 
     def destroy(self):
-        if self.rect.x < -400:
+        if self.rect.right < -100:
             self.kill()
 
 
@@ -174,7 +177,7 @@ class Enemy(pygame.sprite.Sprite):
         self.image = Enemy.image
         self.rect = self.image.get_rect()
         self.rect.bottom = 294
-        self.rect.left = randrange(WIDTH + 100, WIDTH + 600)
+        self.rect.left = randrange(WIDTH + 100, WIDTH + 700)
         self.speed = speed
 
     def update(self):
@@ -195,6 +198,18 @@ def collision(sprite, group):
     if pygame.sprite.spritecollide(sprite, group, False):
         group.empty()
         return True
+
+
+def save_scores(score):
+    global player_score, best_score
+    player_score = score
+    with open('scores', 'a', encoding='utf-8') as fw:
+        fw.write(f"{score}\n")
+    with open('scores', 'r', encoding='utf-8') as fr:
+        scores = [int(line.rstrip("\n")) for line in fr.readlines()]
+    best_score = max(scores)
+    with open('scores', 'w', encoding='utf-8') as fc:
+        fc.write(f'{player_score}\n{best_score}\n')
 
 
 def main_menu():
@@ -260,6 +275,8 @@ def main_menu():
 
 
 def main_game():
+    global start_time
+    game_is_active = True
     all_sprites = pygame.sprite.Group()
 
     bg = pygame.image.load('images/backgrounds/space.png')
@@ -278,86 +295,144 @@ def main_game():
     vehicons = pygame.sprite.Group()
     vehicon_speed = 10
 
-    test_obstacle2 = pygame.Surface((114, 36))
-    test_obstacle2.fill('red')
-
     tunnel_ceilings = pygame.sprite.Group()
     tunnel_walls = pygame.sprite.Group()
     tunnel_speed = 5
-    tunnel_appear = pygame.USEREVENT + 1
-    pygame.time.set_timer(tunnel_appear, 4000)
+
+    obstacle_appear = pygame.USEREVENT + 1
+    pygame.time.set_timer(obstacle_appear, 4000)
+
+    font = pygame.font.Font("font/FFFFORWA.TTF", 30)
 
     pygame.mixer.music.load('sounds/Transformers Cybertron - Theme Song (Extended).mp3')
     pygame.mixer.music.play(-1)
     while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                terminate()
-            if (event.type == pygame.KEYDOWN and event.key == pygame.K_LSHIFT) or \
-                (event.type == pygame.MOUSEBUTTONDOWN and event.button == 3):
-                cliffjumper.sprite.alt_mode_on = not cliffjumper.sprite.alt_mode_on
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                cliffjumper.sprite.gravity = -18
-            if event.type == tunnel_appear:
-                if choice(['vehicon', 'vehicon', 'vehicon', 'tunnel']) == 'tunnel':
-                    tunnel_wall = TunnelWall(tunnel_speed)
-                    tunnel_walls.add(tunnel_wall)
-                    tunnel_ceiling = TunnelCeiling(tunnel_wall.rect.x, tunnel_speed)
-                    tunnel_ceilings.add(tunnel_ceiling)
-                else:
-                    steve = Enemy(vehicon_speed)
-                    vehicons.add(steve)
+        if game_is_active:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if (event.type == pygame.KEYDOWN and event.key == pygame.K_LSHIFT) or \
+                        (event.type == pygame.MOUSEBUTTONDOWN and event.button == 3):
+                    cliffjumper.sprite.alt_mode_on = not cliffjumper.sprite.alt_mode_on
+                if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1) and \
+                        cliffjumper.sprite.rect.bottom == 294:
+                    cliffjumper.sprite.gravity = -18
+                if event.type == obstacle_appear:
+                    if choice(['vehicon', 'vehicon', 'vehicon', 'tunnel']) == 'tunnel':
+                        tunnel_wall = TunnelWall(tunnel_speed)
+                        tunnel_walls.add(tunnel_wall)
+                        tunnel_ceiling = TunnelCeiling(tunnel_wall.rect.x, tunnel_speed)
+                        tunnel_ceilings.add(tunnel_ceiling)
+                    else:
+                        steve = Enemy(vehicon_speed)
+                        vehicons.add(steve)
 
-        screen.blit(bg, (0, 0))
-        screen.blit(ground, ground_rect)
+            screen.blit(bg, (0, 0))
+            screen.blit(ground, ground_rect)
 
-        if cliffjumper.sprite.alt_mode_on:
-            city_speed = 2
-            tunnel_speed = 13
-            vehicon_speed = 18
-        elif not cliffjumper.sprite.alt_mode_on:
-            city_speed = 1
-            tunnel_speed = 5
-            vehicon_speed = 10
+            if cliffjumper.sprite.alt_mode_on:
+                city_speed = 3
+                tunnel_speed = 13
+                vehicon_speed = 18
+            elif not cliffjumper.sprite.alt_mode_on:
+                city_speed = 1
+                tunnel_speed = 5
+                vehicon_speed = 10
 
-        for sprite in bg_sprites.sprites():
-            sprite.speed = city_speed
-            if sprite.rect.right == WIDTH:
-                city = City(all_sprites, city_speed)
-                city.rect.left = WIDTH
-                bg_sprites.add(city)
-            elif sprite.rect.right == WIDTH + 1:
-                city = City(all_sprites, city_speed)
-                city.rect.left = WIDTH + 1
-                bg_sprites.add(city)
+            for sprite in bg_sprites.sprites():
+                sprite.speed = city_speed
+                if sprite.rect.right == WIDTH:
+                    city = City(all_sprites, city_speed)
+                    city.rect.left = WIDTH
+                    bg_sprites.add(city)
+                elif sprite.rect.right == WIDTH + 1:
+                    city = City(all_sprites, city_speed)
+                    city.rect.left = WIDTH + 1
+                    bg_sprites.add(city)
+                elif sprite.rect.right == WIDTH + 2:
+                    city = City(all_sprites, city_speed)
+                    city.rect.left = WIDTH + 2
+                    bg_sprites.add(city)
 
-        for sprite in tunnel_walls.sprites():
-            sprite.speed = tunnel_speed
+            for sprite in tunnel_walls.sprites():
+                sprite.speed = tunnel_speed
 
-        for sprite in tunnel_ceilings.sprites():
-            sprite.speed = tunnel_speed
+            for sprite in tunnel_ceilings.sprites():
+                sprite.speed = tunnel_speed
 
-        for sprite in vehicons.sprites():
-            sprite.speed = vehicon_speed
+            for sprite in vehicons.sprites():
+                sprite.speed = vehicon_speed
 
-        all_sprites.draw(screen)
-        all_sprites.update()
+            all_sprites.draw(screen)
+            all_sprites.update()
 
-        tunnel_walls.draw(screen)
-        tunnel_walls.update()
-        tunnel_ceilings.draw(screen)
-        tunnel_ceilings.update()
+            tunnel_walls.draw(screen)
+            tunnel_walls.update()
+            tunnel_ceilings.draw(screen)
+            tunnel_ceilings.update()
 
-        vehicons.draw(screen)
-        vehicons.update()
+            vehicons.draw(screen)
+            vehicons.update()
 
-        cliffjumper.draw(screen)
-        cliffjumper.update()
+            cliffjumper.draw(screen)
+            cliffjumper.update()
 
-        if collision(cliffjumper.sprite, tunnel_ceilings):
-            terminate()
-        if collision(cliffjumper.sprite, vehicons):
-            terminate()
+            num = (pygame.time.get_ticks() - start_time) // 1000
+            score = font.render(str(num), False, (255, 255, 255))
+            score_rect = score.get_rect()
+            score_rect.x = WIDTH // 2 - score_rect.w // 2
+            score_rect.y = 20
+            screen.blit(score, score_rect)
+
+            if collision(cliffjumper.sprite, tunnel_ceilings):
+                save_scores(num)
+                tunnel_walls.empty()
+                start_time = pygame.time.get_ticks()
+                game_is_active = False
+            if collision(cliffjumper.sprite, vehicons):
+                save_scores(num)
+                start_time = pygame.time.get_ticks()
+                game_is_active = False
+
+            pygame.mixer.music.set_volume(0.8)
+
+        else:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    game_is_active = True
+
+            pygame.mixer.music.set_volume(0.3)
+
+            go_font = pygame.font.Font('font/FFFFORWA.TTF', 50)
+            go_text = go_font.render("GAME OVER", False, (255, 255, 255))
+            go_rect = go_text.get_rect()
+            go_rect.x = WIDTH // 2 - go_rect.w // 2
+            go_rect.y = 50
+
+            font2 = pygame.font.Font('font/FFFFORWA.TTF', 20)
+            ypur_score = font2.render(f"Your score: {player_score}", False, (255, 255, 255))
+            your_score_rect = ypur_score.get_rect()
+            your_score_rect.x = WIDTH // 2 - your_score_rect.w // 2
+            your_score_rect.y = 160
+
+            best_score_go = font2.render(f'Best score: {best_score}', False, (255, 255, 255))
+            best_score_go_rect = best_score_go.get_rect()
+            best_score_go_rect.x = WIDTH // 2 - best_score_go_rect.w // 2
+            best_score_go_rect.y = 230
+
+            font3 = pygame.font.Font('font/FFFFORWA.TTF', 20)
+            how_to_restart_text = font3.render('Press left button mouth to restart', False, (50, 50, 50))
+            how_to_restart_text_rect = how_to_restart_text.get_rect()
+            how_to_restart_text_rect.x = WIDTH // 2 - how_to_restart_text_rect.w // 2
+            how_to_restart_text_rect.y = 310
+
+            screen.fill((0, 0, 0))
+            screen.blit(go_text, go_rect)
+            screen.blit(ypur_score, your_score_rect)
+            screen.blit(best_score_go, best_score_go_rect)
+            screen.blit(how_to_restart_text, how_to_restart_text_rect)
 
         pygame.display.flip()
         clock.tick(24)
