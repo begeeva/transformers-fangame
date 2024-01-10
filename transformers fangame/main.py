@@ -302,7 +302,13 @@ def main_game():
     obstacle_appear = pygame.USEREVENT + 1
     pygame.time.set_timer(obstacle_appear, 4000)
 
-    font = pygame.font.Font("font/FFFFORWA.TTF", 30)
+    score_font = pygame.font.Font("font/FFFFORWA.TTF", 30)
+    go_font = pygame.font.Font('font/FFFFORWA.TTF', 50)
+    go_scores_font = pygame.font.Font('font/FFFFORWA.TTF', 20)
+
+    number = 0
+    score_increase = pygame.USEREVENT + 2
+    pygame.time.set_timer(score_increase, 1000)
 
     pygame.mixer.music.load('sounds/Transformers Cybertron - Theme Song (Extended).mp3')
     pygame.mixer.music.play(-1)
@@ -326,6 +332,8 @@ def main_game():
                     else:
                         steve = Enemy(vehicon_speed)
                         vehicons.add(steve)
+                if event.type == score_increase:
+                    number += 1
 
             screen.blit(bg, (0, 0))
             screen.blit(ground, ground_rect)
@@ -377,20 +385,19 @@ def main_game():
             cliffjumper.draw(screen)
             cliffjumper.update()
 
-            num = (pygame.time.get_ticks() - start_time) // 1000
-            score = font.render(str(num), False, (255, 255, 255))
+            score = score_font.render(str(number), False, (255, 255, 255))
             score_rect = score.get_rect()
             score_rect.x = WIDTH // 2 - score_rect.w // 2
             score_rect.y = 20
             screen.blit(score, score_rect)
 
             if collision(cliffjumper.sprite, tunnel_ceilings):
-                save_scores(num)
+                save_scores(number)
                 tunnel_walls.empty()
                 start_time = pygame.time.get_ticks()
                 game_is_active = False
             if collision(cliffjumper.sprite, vehicons):
-                save_scores(num)
+                save_scores(number)
                 start_time = pygame.time.get_ticks()
                 game_is_active = False
 
@@ -405,32 +412,31 @@ def main_game():
 
             pygame.mixer.music.set_volume(0.3)
 
-            go_font = pygame.font.Font('font/FFFFORWA.TTF', 50)
+            number = 0
+
             go_text = go_font.render("GAME OVER", False, (255, 255, 255))
             go_rect = go_text.get_rect()
             go_rect.x = WIDTH // 2 - go_rect.w // 2
             go_rect.y = 50
 
-            font2 = pygame.font.Font('font/FFFFORWA.TTF', 20)
-            ypur_score = font2.render(f"Your score: {player_score}", False, (255, 255, 255))
-            your_score_rect = ypur_score.get_rect()
+            your_score = go_scores_font.render(f"Your score: {player_score}", False, (255, 255, 255))
+            your_score_rect = your_score.get_rect()
             your_score_rect.x = WIDTH // 2 - your_score_rect.w // 2
             your_score_rect.y = 160
 
-            best_score_go = font2.render(f'Best score: {best_score}', False, (255, 255, 255))
+            best_score_go = go_scores_font.render(f'Best score: {best_score}', False, (255, 255, 255))
             best_score_go_rect = best_score_go.get_rect()
             best_score_go_rect.x = WIDTH // 2 - best_score_go_rect.w // 2
             best_score_go_rect.y = 230
 
-            font3 = pygame.font.Font('font/FFFFORWA.TTF', 20)
-            how_to_restart_text = font3.render('Press left button mouth to restart', False, (50, 50, 50))
+            how_to_restart_text = go_scores_font.render('Press left mouse button to restart', False, (255, 255, 255))
             how_to_restart_text_rect = how_to_restart_text.get_rect()
             how_to_restart_text_rect.x = WIDTH // 2 - how_to_restart_text_rect.w // 2
             how_to_restart_text_rect.y = 310
 
-            screen.fill((0, 0, 0))
+            screen.fill((9, 11, 33))
             screen.blit(go_text, go_rect)
-            screen.blit(ypur_score, your_score_rect)
+            screen.blit(your_score, your_score_rect)
             screen.blit(best_score_go, best_score_go_rect)
             screen.blit(how_to_restart_text, how_to_restart_text_rect)
 
