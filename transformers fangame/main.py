@@ -9,6 +9,9 @@ best_score = 0
 
 pygame.init()
 screen = pygame.display.set_mode(SIZE)
+icon = pygame.image.load("images/autobots insignia.png")
+pygame.display.set_icon(icon)
+pygame.display.set_caption("Transformers")
 
 FPS = 30
 clock = pygame.time.Clock()
