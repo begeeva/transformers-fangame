@@ -88,6 +88,7 @@ class Player(pygame.sprite.Sprite):
         self.cliff_alt_mode = pygame.image.load('images/cliff sprites/cliff alt mode.png').convert_alpha()
         self.alt_mode_on = False
         self.cliff_jump = pygame.image.load('images/cliff sprites/cliff jump.png').convert_alpha()
+
         # дальше импортирую кадры анимации
         cr0 = pygame.image.load('images/cliff sprites/cliff run00.png').convert_alpha()
         cr1 = pygame.image.load('images/cliff sprites/cliff run01.png').convert_alpha()
@@ -98,8 +99,10 @@ class Player(pygame.sprite.Sprite):
         cr6 = pygame.image.load('images/cliff sprites/cliff run06.png').convert_alpha()
         cr7 = pygame.image.load('images/cliff sprites/cliff run07.png').convert_alpha()
         cr8 = pygame.image.load('images/cliff sprites/cliff run08.png').convert_alpha()
+
         # добавляю их в один список
         self.cliff_run = [cr0, cr1, cr2, cr3, cr4, cr5, cr6, cr7, cr8]
+
         self.index = 0  # число, указывающее номер кадра на данный момент
         self.image = self.cliff_run[self.index]
         self.rect = self.image.get_rect()
@@ -203,7 +206,6 @@ class Enemy(pygame.sprite.Sprite):
 # функция для проверки на столкновения
 def collision(sprite, group):
     if pygame.sprite.spritecollide(sprite, group, False):
-        group.empty()
         return True
 
 
@@ -211,15 +213,14 @@ def collision(sprite, group):
 def save_scores(score):
     global player_score, best_score
     player_score = score
-    # в конец файла записывается кол-во очков игрока
+
     with open('scores', 'a', encoding='utf-8') as fw:
         fw.write(f"{score}\n")
-    # получаю список очков в файле, для поиска лучшего результата
+
     with open('scores', 'r', encoding='utf-8') as fr:
         scores = [int(line.rstrip("\n")) for line in fr.readlines()]
     best_score = max(scores)
-    # перезаписываю файл так, чтобы там было лишь два числа: кол-во очков за данную игру и
-    # лучший результат за все игры
+
     with open('scores', 'w', encoding='utf-8') as fc:
         fc.write(f'{player_score}\n{best_score}\n')
 
@@ -368,7 +369,9 @@ def main_game():
                 vehicon_speed = 10
 
             for sprite in bg_sprites.sprites():
-                sprite.speed = city_speed
+                sprite.speed = city_speed  # обновление скорости
+
+                # зацикливание фона
                 if sprite.rect.right == WIDTH:
                     city = City(all_sprites, city_speed)
                     city.rect.left = WIDTH
@@ -382,12 +385,15 @@ def main_game():
                     city.rect.left = WIDTH + 2
                     bg_sprites.add(city)
 
+            # обновление скорости стенок тоннелей
             for sprite in tunnel_walls.sprites():
                 sprite.speed = tunnel_speed
 
+            # обновление скорости потолков тоннелей
             for sprite in tunnel_ceilings.sprites():
                 sprite.speed = tunnel_speed
 
+            # обновление скорости врагов
             for sprite in vehicons.sprites():
                 sprite.speed = vehicon_speed
 
@@ -414,8 +420,10 @@ def main_game():
             if collision(cliffjumper.sprite, tunnel_ceilings):
                 save_scores(number)
                 tunnel_walls.empty()
+                tunnel_ceilings.empty()
                 game_is_active = False
             if collision(cliffjumper.sprite, vehicons):
+                vehicons.empty()
                 save_scores(number)
                 game_is_active = False
 
@@ -431,6 +439,7 @@ def main_game():
             pygame.mixer.music.set_volume(0.3)
 
             number = 0
+            cliffjumper.sprite.alt_mode_on = False
 
             go_text = go_font.render("GAME OVER", False, (255, 255, 255))
             go_rect = go_text.get_rect()
