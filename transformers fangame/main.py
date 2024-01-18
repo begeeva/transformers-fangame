@@ -243,7 +243,7 @@ def main_menu():
 
     bg = pygame.image.load('images/backgrounds/space.png')
 
-    pygame.mixer.music.load('sounds/The Transformers (Theme) (128kbps).mp3')
+    pygame.mixer.music.load('bg music/The Transformers (Theme) (128kbps).mp3')
     pygame.mixer.music.play(-1)
 
     # кол-во звёзд
@@ -329,7 +329,7 @@ def main_game():
     score_increase = pygame.USEREVENT + 2  # событие увеличения очков
     pygame.time.set_timer(score_increase, 1000)
 
-    pygame.mixer.music.load('sounds/Transformers Cybertron - Theme Song.mp3')
+    pygame.mixer.music.load('bg music/Transformers Cybertron - Theme Song.mp3')
     pygame.mixer.music.play(-1)
     while True:
         if game_is_active:
