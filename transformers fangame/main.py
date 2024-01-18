@@ -9,7 +9,7 @@ best_score = 0
 
 pygame.init()
 screen = pygame.display.set_mode(SIZE)
-icon = pygame.image.load("images/autobots insignia.png")
+icon = pygame.image.load("data/autobots insignia.png")
 pygame.display.set_icon(icon)
 pygame.display.set_caption("Transformers")
 
@@ -19,7 +19,7 @@ clock = pygame.time.Clock()
 
 # класс звёздочек в главном меню
 class Star(pygame.sprite.Sprite):
-    image = pygame.image.load('images/other sprites/a star.png')
+    image = pygame.image.load('data/other sprites/a star.png')
 
     def __init__(self, group):
         super().__init__(*group)
@@ -41,8 +41,8 @@ class Star(pygame.sprite.Sprite):
 
 # класс кнопки "start" в главном меню
 class StartBtn(pygame.sprite.Sprite):
-    not_pressed = pygame.image.load('images/other sprites/start btn.png').convert_alpha()
-    pressed = pygame.image.load('images/other sprites/start btn pressed.png').convert_alpha()
+    not_pressed = pygame.image.load('data/other sprites/start btn.png').convert_alpha()
+    pressed = pygame.image.load('data/other sprites/start btn pressed.png').convert_alpha()
 
     def __init__(self, group):
         super().__init__(group)
@@ -63,7 +63,7 @@ class StartBtn(pygame.sprite.Sprite):
 
 # класс города на заднем фоне в самом уровне
 class City(pygame.sprite.Sprite):
-    image = pygame.image.load('images/other sprites/bg city.png')
+    image = pygame.image.load('data/other sprites/bg city.png')
 
     def __init__(self, group, speed):
         super().__init__(group)
@@ -85,20 +85,20 @@ class City(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.cliff_alt_mode = pygame.image.load('images/cliff sprites/cliff alt mode.png').convert_alpha()
+        self.cliff_alt_mode = pygame.image.load('data/cliff sprites/cliff alt mode.png').convert_alpha()
         self.alt_mode_on = False
-        self.cliff_jump = pygame.image.load('images/cliff sprites/cliff jump.png').convert_alpha()
+        self.cliff_jump = pygame.image.load('data/cliff sprites/cliff jump.png').convert_alpha()
 
         # дальше импортирую кадры анимации
-        cr0 = pygame.image.load('images/cliff sprites/cliff run00.png').convert_alpha()
-        cr1 = pygame.image.load('images/cliff sprites/cliff run01.png').convert_alpha()
-        cr2 = pygame.image.load('images/cliff sprites/cliff run02.png').convert_alpha()
-        cr3 = pygame.image.load('images/cliff sprites/cliff run03.png').convert_alpha()
-        cr4 = pygame.image.load('images/cliff sprites/cliff run04.png').convert_alpha()
-        cr5 = pygame.image.load('images/cliff sprites/cliff run05.png').convert_alpha()
-        cr6 = pygame.image.load('images/cliff sprites/cliff run06.png').convert_alpha()
-        cr7 = pygame.image.load('images/cliff sprites/cliff run07.png').convert_alpha()
-        cr8 = pygame.image.load('images/cliff sprites/cliff run08.png').convert_alpha()
+        cr0 = pygame.image.load('data/cliff sprites/cliff run00.png').convert_alpha()
+        cr1 = pygame.image.load('data/cliff sprites/cliff run01.png').convert_alpha()
+        cr2 = pygame.image.load('data/cliff sprites/cliff run02.png').convert_alpha()
+        cr3 = pygame.image.load('data/cliff sprites/cliff run03.png').convert_alpha()
+        cr4 = pygame.image.load('data/cliff sprites/cliff run04.png').convert_alpha()
+        cr5 = pygame.image.load('data/cliff sprites/cliff run05.png').convert_alpha()
+        cr6 = pygame.image.load('data/cliff sprites/cliff run06.png').convert_alpha()
+        cr7 = pygame.image.load('data/cliff sprites/cliff run07.png').convert_alpha()
+        cr8 = pygame.image.load('data/cliff sprites/cliff run08.png').convert_alpha()
 
         # добавляю их в один список
         self.cliff_run = [cr0, cr1, cr2, cr3, cr4, cr5, cr6, cr7, cr8]
@@ -144,7 +144,7 @@ class Player(pygame.sprite.Sprite):
 
 # класс потолка тоннеля
 class TunnelCeiling(pygame.sprite.Sprite):
-    image = pygame.image.load('images/other sprites/tunnel ceiling.png')
+    image = pygame.image.load('data/other sprites/tunnel ceiling.png')
 
     def __init__(self, x, speed):
         super().__init__()
@@ -164,7 +164,7 @@ class TunnelCeiling(pygame.sprite.Sprite):
 
 # класс стенки тоннеля
 class TunnelWall(pygame.sprite.Sprite):
-    image = pygame.image.load('images/other sprites/tunnel wall.png')
+    image = pygame.image.load('data/other sprites/tunnel wall.png')
 
     def __init__(self, speed):
         super().__init__()
@@ -184,7 +184,7 @@ class TunnelWall(pygame.sprite.Sprite):
 
 # класс врага
 class Enemy(pygame.sprite.Sprite):
-    image = pygame.image.load('images/other sprites/vehicon steve.png').convert_alpha()
+    image = pygame.image.load('data/other sprites/vehicon steve.png').convert_alpha()
 
     def __init__(self, speed):
         super().__init__()
@@ -236,12 +236,12 @@ def main_menu():
     start_btn = StartBtn(st_btn_sprite)
     st_btn_pressed_time = 0  # момент с нажатия кнопки
 
-    game_title = pygame.image.load('images/other sprites/title.png').convert_alpha()
+    game_title = pygame.image.load('data/other sprites/title.png').convert_alpha()
     game_title_rect = game_title.get_rect()
     game_title_rect.x = 40
     game_title_rect.y = 100
 
-    bg = pygame.image.load('images/backgrounds/space.png')
+    bg = pygame.image.load('data/backgrounds/space.png')
 
     pygame.mixer.music.load('bg music/The Transformers (Theme) (128kbps).mp3')
     pygame.mixer.music.play(-1)
@@ -253,7 +253,7 @@ def main_menu():
         star = Star(star_sprites)
         all_sprites.add(star)
 
-    cybertron = pygame.image.load('images/other sprites/Cybertron.png')
+    cybertron = pygame.image.load('data/other sprites/Cybertron.png')
     cybertron_rect = cybertron.get_rect()
     cybertron_rect.bottom = HEIGHT
     cybertron_rect.right = WIDTH
@@ -297,9 +297,9 @@ def main_game():
     game_is_active = True
     all_sprites = pygame.sprite.Group()
 
-    bg = pygame.image.load('images/backgrounds/space.png')
+    bg = pygame.image.load('data/backgrounds/space.png')
 
-    ground = pygame.image.load('images/other sprites/ground.png')
+    ground = pygame.image.load('data/other sprites/ground.png')
     ground_rect = ground.get_rect()
     ground_rect.bottom = HEIGHT
 
