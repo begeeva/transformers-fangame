@@ -27,7 +27,7 @@ class Star(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = randrange(1, 768)
         self.rect.y = randrange(1, 384)
-        self.vx = randrange(1, 5)
+        self.vx = randrange(1, 4)
         self.vy = randrange(-5, 5)
 
     def update(self):
@@ -247,7 +247,7 @@ def main_menu():
     pygame.mixer.music.play(-1)
 
     # кол-во звёзд
-    n_stars = 500
+    n_stars = 300
 
     for i in range(n_stars):
         star = Star(star_sprites)
@@ -269,7 +269,7 @@ def main_menu():
 
         screen.blit(bg, (0, 0))
 
-        if len(all_sprites.sprites()) < 502:
+        if len(all_sprites.sprites()) < 302:
             star = Star(star_sprites)
             star.rect.x = 0
             all_sprites.add(star)
@@ -360,8 +360,8 @@ def main_game():
             # если герой в режиме автомобиля, то все объекты вокруг него начинают двигаться быстрее
             if cliffjumper.sprite.alt_mode_on:
                 city_speed = 3
-                tunnel_speed = 13
-                vehicon_speed = 20
+                tunnel_speed = 18
+                vehicon_speed = 23
             # а если в режиме робота - медленнее
             elif not cliffjumper.sprite.alt_mode_on:
                 city_speed = 1
