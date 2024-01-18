@@ -214,14 +214,14 @@ def save_scores(score):
     global player_score, best_score
     player_score = score
 
-    with open('scores', 'a', encoding='utf-8') as fw:
+    with open('scores.txt', 'a', encoding='utf-8') as fw:
         fw.write(f"{score}\n")
 
-    with open('scores', 'r', encoding='utf-8') as fr:
+    with open('scores.txt', 'r', encoding='utf-8') as fr:
         scores = [int(line.rstrip("\n")) for line in fr.readlines()]
     best_score = max(scores)
 
-    with open('scores', 'w', encoding='utf-8') as fc:
+    with open('scores.txt', 'w', encoding='utf-8') as fc:
         fc.write(f'{player_score}\n{best_score}\n')
 
 
