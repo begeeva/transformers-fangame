@@ -28,7 +28,6 @@ class Star(pygame.sprite.Sprite):
         self.rect.x = randrange(1, 768)
         self.rect.y = randrange(1, 384)
         self.vx = randrange(1, 4)
-        self.vy = randrange(-5, 5)
 
     def update(self):
         self.rect = self.rect.move(self.vx, 0)
