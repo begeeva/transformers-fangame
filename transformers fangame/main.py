@@ -43,8 +43,8 @@ class StartBtn(pygame.sprite.Sprite):
     not_pressed = pygame.image.load('data/other sprites/start btn.png').convert_alpha()
     pressed = pygame.image.load('data/other sprites/start btn pressed.png').convert_alpha()
 
-    def __init__(self, group):
-        super().__init__(group)
+    def __init__(self):
+        super().__init__()
         self.image = StartBtn.not_pressed
         self.rect = self.not_pressed.get_rect()
         self.rect.x = 140
@@ -231,8 +231,7 @@ def main_menu():
     star_sprites = pygame.sprite.Group()
     all_sprites.add(star_sprites)
 
-    st_btn_sprite = pygame.sprite.GroupSingle()
-    start_btn = StartBtn(st_btn_sprite)
+    start_btn = StartBtn()
     st_btn_pressed_time = 0  # момент с нажатия кнопки
 
     game_title = pygame.image.load('data/other sprites/title.png').convert_alpha()
@@ -279,7 +278,6 @@ def main_menu():
         screen.blit(cybertron, cybertron_rect)
         screen.blit(game_title, game_title_rect)
         screen.blit(start_btn.image, start_btn.rect)
-        start_btn.update()
 
         if start_btn.is_pressed and 500 < pygame.time.get_ticks() - st_btn_pressed_time < 600:
             pygame.mixer.music.stop()
